@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"log"
+	"encoding/json"
 	"net/http"
 )
 
@@ -12,13 +12,13 @@ func NewUserHandler() *UserHandler {
 }
 
 func (uh *UserHandler) Profile(w http.ResponseWriter, r *http.Request) {
-	c := CurrentUser(r)
-	if c == nil {
-		http.Error(w, "unauthenticated", http.StatusUnauthorized)
+	user := CurrentUser(r)
+
+	if err := json.NewEncoder(w).Encode(map[string]string{
+		"id":   user.Issuer,
+		"role": user.Role,
+	}); err != nil {
+		http.Error(w, "error writing response", http.StatusInternalServerError)
 		return
-	}
-	_, err := w.Write([]byte("Hello, " + c.Issuer + "!"))
-	if err != nil {
-		log.Println("error writing response:", err)
 	}
 }
